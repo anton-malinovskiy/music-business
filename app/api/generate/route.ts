@@ -59,12 +59,12 @@ export async function POST(request: NextRequest) {
 
     const prompt = buildPrompt(preferences)
 
-    // Generate multiple tracks using ElevenLabs Sound Generation API
+    // Generate multiple tracks using ElevenLabs Sound Effects API
     const tracks = []
-    const trackCount = 8 // Generate 8 tracks for ~2-3 hour playlist
+    const trackCount = 3 // Start with fewer tracks to test
 
     for (let i = 0; i < trackCount; i++) {
-      const response = await fetch('https://api.elevenlabs.io/v1/sound-generation', {
+      const response = await fetch('https://api.elevenlabs.io/v1/text-to-sound-effects', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
         },
         body: JSON.stringify({
           text: `${prompt}, variation ${i + 1}`,
-          duration_seconds: 30, // ElevenLabs sound generation limit
+          duration_seconds: 22, // Max duration for sound effects
           prompt_influence: 0.3,
         }),
       })
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
       tracks.push({
         id: `track-${Date.now()}-${i + 1}`,
         title: `${preferences.genre} ${i + 1}`,
-        duration: 30,
+        duration: 22,
         url: audioUrl,
       })
     }
