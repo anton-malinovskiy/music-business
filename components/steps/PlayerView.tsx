@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { MusicPreferences, Track } from '@/types'
 import { pl } from '@/lib/translations'
 
@@ -29,9 +29,73 @@ export default function PlayerView({ preferences, onNewPlaylist, tracks }: Props
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0)
   const [playlistName, setPlaylistName] = useState('Moja playlista')
   const [isEditing, setIsEditing] = useState(false)
+  const [currentTime, setCurrentTime] = useState(0)
+  const [duration, setDuration] = useState(0)
+
+  const audioRef = useRef<HTMLAudioElement>(null)
 
   const currentTrack = playlistTracks[currentTrackIndex]
   const totalDuration = playlistTracks.reduce((acc, track) => acc + track.duration, 0)
+
+  // Handle audio playback when isPlaying changes
+  useEffect(() => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.play().catch((error) => {
+          console.error('Error playing audio:', error)
+          setIsPlaying(false)
+        })
+      } else {
+        audioRef.current.pause()
+      }
+    }
+  }, [isPlaying])
+
+  // Handle track change
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.load()
+      setCurrentTime(0)
+      if (isPlaying) {
+        audioRef.current.play().catch((error) => {
+          console.error('Error playing audio:', error)
+          setIsPlaying(false)
+        })
+      }
+    }
+  }, [currentTrackIndex])
+
+  const handleTimeUpdate = () => {
+    if (audioRef.current) {
+      setCurrentTime(audioRef.current.currentTime)
+    }
+  }
+
+  const handleLoadedMetadata = () => {
+    if (audioRef.current) {
+      setDuration(audioRef.current.duration)
+    }
+  }
+
+  const handleEnded = () => {
+    // Auto-advance to next track
+    if (currentTrackIndex < playlistTracks.length - 1) {
+      setCurrentTrackIndex((prev) => prev + 1)
+    } else {
+      // End of playlist
+      setIsPlaying(false)
+      setCurrentTrackIndex(0)
+    }
+  }
+
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (audioRef.current && duration > 0) {
+      const rect = e.currentTarget.getBoundingClientRect()
+      const clickX = e.clientX - rect.left
+      const percentage = clickX / rect.width
+      audioRef.current.currentTime = percentage * duration
+    }
+  }
 
   const formatTime = (seconds: number) => {
     const hrs = Math.floor(seconds / 3600)
@@ -66,6 +130,15 @@ export default function PlayerView({ preferences, onNewPlaylist, tracks }: Props
 
   return (
     <div>
+      {/* Hidden Audio Element */}
+      <audio
+        ref={audioRef}
+        src={currentTrack.url}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        onEnded={handleEnded}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
@@ -113,12 +186,18 @@ export default function PlayerView({ preferences, onNewPlaylist, tracks }: Props
 
         {/* Progress Bar */}
         <div className="mb-4">
-          <div className="w-full bg-gray-200 rounded-full h-1.5">
-            <div className="bg-primary-600 h-1.5 rounded-full" style={{ width: '35%' }} />
+          <div
+            className="w-full bg-gray-200 rounded-full h-1.5 cursor-pointer"
+            onClick={handleProgressClick}
+          >
+            <div
+              className="bg-primary-600 h-1.5 rounded-full transition-all"
+              style={{ width: duration > 0 ? `${(currentTime / duration) * 100}%` : '0%' }}
+            />
           </div>
           <div className="flex justify-between text-xs text-gray-500 mt-1">
-            <span>1:24</span>
-            <span>{formatTrackTime(currentTrack.duration)}</span>
+            <span>{formatTrackTime(Math.floor(currentTime))}</span>
+            <span>{formatTrackTime(Math.floor(duration) || currentTrack.duration)}</span>
           </div>
         </div>
 
