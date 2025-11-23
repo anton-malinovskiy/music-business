@@ -3,39 +3,50 @@ import { MusicPreferences } from '@/types'
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY
 
-// Map preferences to descriptive prompts for ElevenLabs
+// Map preferences to detailed, cinematic prompts for ElevenLabs
 function buildPrompt(preferences: MusicPreferences): string {
+  // Detailed atmospheric descriptions for each business type
   const businessDescriptions: Record<string, string> = {
-    restaurant: 'upscale restaurant',
-    cafe: 'cozy coffee shop',
-    retail: 'retail store',
-    spa: 'spa and wellness center',
-    gym: 'fitness gym',
-    hotel: 'hotel lobby',
+    restaurant: 'upscale dining atmosphere with warm, inviting ambiance',
+    cafe: 'cozy coffee shop with intimate, relaxed setting',
+    retail: 'modern retail space with sophisticated shopping experience',
+    spa: 'serene spa and wellness sanctuary with peaceful, healing atmosphere',
+    gym: 'high-energy fitness environment with motivating drive',
+    hotel: 'elegant hotel lobby with refined, welcoming presence',
   }
 
+  // Time-based mood and atmosphere descriptions
   const timeDescriptions: Record<string, string> = {
-    morning: 'morning, calm and refreshing',
-    lunch: 'midday, moderate pace',
-    dinner: 'evening dining, sophisticated',
-    evening: 'late evening, relaxed',
-    late_night: 'late night, mellow',
+    morning: 'early morning with fresh, awakening energy and gentle brightness',
+    lunch: 'midday atmosphere with balanced, moderate-paced flow',
+    dinner: 'evening dining with sophisticated, warm golden-hour mood',
+    evening: 'late evening with relaxed, unwinding contemplative feel',
+    late_night: 'late night with mellow, intimate, subdued atmosphere',
   }
 
+  // Detailed genre descriptions with instrumentation and production style
   const genreDescriptions: Record<string, string> = {
-    jazz: 'smooth jazz',
-    classical: 'classical piano',
-    acoustic: 'acoustic guitar',
-    bossa_nova: 'bossa nova',
-    ambient: 'ambient',
-    electronic: 'electronic chill',
-    pop: 'soft pop instrumental',
+    jazz: 'smooth jazz with warm saxophone melodies, soft brushed drums, walking basslines, muted trumpet accents, and subtle piano chords creating a sophisticated, intimate atmosphere',
+    classical: 'classical composition with elegant piano arpeggios, gentle string arrangements, soft woodwind accents, and refined orchestral textures creating a timeless, cultured ambiance',
+    acoustic: 'acoustic arrangement with fingerpicked guitar, soft percussion, light bass, subtle string pads, and natural organic warmth creating an earthy, authentic feel',
+    bossa_nova: 'bossa nova with gentle nylon guitar patterns, soft brushed percussion, smooth bass grooves, subtle flute accents, and warm tropical elegance creating a relaxed, sophisticated mood',
+    ambient: 'ambient soundscape with atmospheric pads, subtle textures, gentle drones, soft melodic elements, and spacious reverb creating a calm, meditative, hypnotic atmosphere',
+    electronic: 'electronic chill with minimal smooth beats, warm synth pads, light plucks, subtle bass grooves, and airy textures creating a modern, atmospheric, meditative vibe',
+    pop: 'soft pop instrumental with gentle melodic hooks, light acoustic and electronic blend, smooth bassline, subtle rhythmic elements, and polished production creating an accessible, pleasant atmosphere',
   }
 
-  const energyLevels = ['very calm', 'calm', 'moderate', 'upbeat', 'energetic']
-  const energyLevel = energyLevels[(preferences.energy || 3) - 1]
+  // Energy level descriptions with tempo and intensity
+  const energyDescriptions: Record<number, string> = {
+    1: 'very calm and peaceful with slow tempo, minimal arrangement, and soft dynamics',
+    2: 'calm and gentle with relaxed tempo, light arrangement, and smooth flow',
+    3: 'moderate and balanced with medium tempo, full arrangement, and steady groove',
+    4: 'upbeat and lively with faster tempo, dynamic arrangement, and positive energy',
+    5: 'energetic and driving with quick tempo, full dynamic range, and powerful momentum',
+  }
 
-  return `${energyLevel} ${genreDescriptions[preferences.genre!]} background music for ${businessDescriptions[preferences.businessType!]} during ${timeDescriptions[preferences.timeOfDay!]}, instrumental, royalty-free`
+  const energyLevel = energyDescriptions[(preferences.energy || 3) as keyof typeof energyDescriptions]
+
+  return `${genreDescriptions[preferences.genre!]}. The mood is ${energyLevel}. Perfect background music for a ${businessDescriptions[preferences.businessType!]} during ${timeDescriptions[preferences.timeOfDay!]}. Instrumental, high-quality production, royalty-free.`
 }
 
 export async function POST(request: NextRequest) {
