@@ -79,7 +79,14 @@ export async function POST(request: NextRequest) {
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error(`ElevenLabs error for track ${i + 1}:`, errorText)
+        console.error(`ElevenLabs error for track ${i + 1}:`, response.status, errorText)
+        // Return the actual error on first failure for debugging
+        if (i === 0) {
+          return NextResponse.json(
+            { error: `ElevenLabs API error: ${response.status} - ${errorText}` },
+            { status: 500 }
+          )
+        }
         continue
       }
 
