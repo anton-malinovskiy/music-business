@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  businessName String?
+  businessType String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  playlists    Playlist[]
+  subscription Subscription?
+}
+
+model Playlist {
+  id           String   @id @default(cuid())
+  name         String
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessType String
+  timeOfDay    String
+  genre        String
+  energy       Int      @default(3)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  tracks       Track[]
+
+  @@index([userId])
+}
+
+model Track {
+  id         String   @id @default(cuid())
+  title      String
+  duration   Int      // in seconds
+  audioUrl   String   @db.Text
+  playlistId String
+  playlist   Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  position   Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@index([playlistId])
+}
+
+model Subscription {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan      String   @default("free") // free, basic, pro
+  status    String   @default("active") // active, cancelled, expired
+  startDate DateTime @default(now())
+  endDate   DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
