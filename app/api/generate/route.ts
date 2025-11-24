@@ -1,53 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { MusicPreferences } from '@/types'
+import { buildPrompt } from '@/lib/promptBuilder'
 
 const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY
-
-// Map preferences to detailed prompts for ElevenLabs (max 450 chars)
-function buildPrompt(preferences: MusicPreferences): string {
-  // Concise business atmosphere
-  const businessDescriptions: Record<string, string> = {
-    restaurant: 'upscale restaurant',
-    cafe: 'cozy cafe',
-    retail: 'retail space',
-    spa: 'spa sanctuary',
-    gym: 'fitness gym',
-    hotel: 'hotel lobby',
-  }
-
-  // Time-based mood
-  const timeDescriptions: Record<string, string> = {
-    morning: 'morning, fresh and bright',
-    lunch: 'midday, balanced flow',
-    dinner: 'evening, warm and sophisticated',
-    evening: 'late evening, relaxed',
-    late_night: 'late night, mellow and intimate',
-  }
-
-  // Detailed genre with instrumentation (kept concise)
-  const genreDescriptions: Record<string, string> = {
-    jazz: 'Smooth jazz with warm saxophone, brushed drums, walking bass, muted trumpet, subtle piano. Sophisticated, intimate atmosphere',
-    classical: 'Classical piano with elegant arpeggios, gentle strings, soft woodwinds. Timeless, refined ambiance',
-    acoustic: 'Acoustic guitar fingerpicking, soft percussion, light bass, string pads. Earthy, organic warmth',
-    bossa_nova: 'Bossa nova with nylon guitar, brushed percussion, smooth bass, flute accents. Relaxed tropical elegance',
-    ambient: 'Ambient pads, subtle textures, gentle drones, spacious reverb. Calm, meditative, hypnotic atmosphere',
-    electronic: 'Electronic chill with minimal beats, warm synth pads, light plucks, airy textures. Modern, atmospheric vibe',
-    pop: 'Soft pop instrumental with melodic hooks, acoustic-electronic blend, smooth bass. Pleasant, polished production',
-  }
-
-  // Energy descriptions
-  const energyDescriptions: Record<number, string> = {
-    1: 'Very calm, slow tempo, minimal, soft',
-    2: 'Calm, relaxed tempo, light arrangement',
-    3: 'Moderate tempo, balanced, steady groove',
-    4: 'Upbeat, faster tempo, dynamic, positive',
-    5: 'Energetic, quick tempo, powerful momentum',
-  }
-
-  const energy = energyDescriptions[(preferences.energy || 3) as keyof typeof energyDescriptions]
-
-  return `${genreDescriptions[preferences.genre!]}. ${energy}. Background music for ${businessDescriptions[preferences.businessType!]} during ${timeDescriptions[preferences.timeOfDay!]}. Instrumental.`
-}
 
 export async function POST(request: NextRequest) {
   try {
