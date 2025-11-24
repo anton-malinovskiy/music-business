@@ -17,6 +17,7 @@ const genres: { genre: Genre; icon: string; color: string }[] = [
   { genre: 'ambient', icon: '🌊', color: 'bg-blue-100 hover:bg-blue-200' },
   { genre: 'electronic', icon: '🎹', color: 'bg-pink-100 hover:bg-pink-200' },
   { genre: 'pop', icon: '🎤', color: 'bg-orange-100 hover:bg-orange-200' },
+  { genre: 'blues', icon: '🎺', color: 'bg-indigo-100 hover:bg-indigo-200' },
 ]
 
 export default function GenreStep({ onSelect, initialEnergy }: Props) {
