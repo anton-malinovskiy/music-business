@@ -48,6 +48,7 @@ export const pl = {
     ambient: 'Ambient',
     electronic: 'Elektroniczna',
     pop: 'Pop',
+    blues: 'Blues',
   },
 
   energy: {
