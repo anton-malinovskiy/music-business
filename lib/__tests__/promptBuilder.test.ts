@@ -6,6 +6,8 @@ import {
   timeDescriptions,
   genreDescriptions,
   energyDescriptions,
+  bluesSubgenres,
+  selectBluesSubgenre,
 } from '../promptBuilder'
 import { MusicPreferences } from '@/types'
 
@@ -36,6 +38,16 @@ describe('promptBuilder', () => {
               expect(prompt.length).toBeLessThanOrEqual(MAX_PROMPT_LENGTH)
             })
           })
+        })
+      })
+
+      it('all blues subgenres stay under 450 characters', () => {
+        Object.entries(bluesSubgenres).forEach(([subgenre, prompt]) => {
+          const validation = validatePrompt(prompt)
+          expect(validation.valid).toBe(true)
+          if (!validation.valid) {
+            console.log(`Blues subgenre "${subgenre}" exceeds limit: ${prompt.length} chars`)
+          }
         })
       })
     })
@@ -165,6 +177,138 @@ describe('promptBuilder', () => {
       })
     })
 
+    // Test blues subgenre selection
+    describe('blues subgenre selection', () => {
+      it('late_night always returns slow blues', () => {
+        const subgenre = selectBluesSubgenre('restaurant', 'late_night', 5)
+        expect(subgenre).toBe('slow')
+      })
+
+      it('morning with low energy returns delta blues', () => {
+        const subgenre = selectBluesSubgenre('cafe', 'morning', 1)
+        expect(subgenre).toBe('delta')
+      })
+
+      it('morning with normal energy returns piedmont blues', () => {
+        const subgenre = selectBluesSubgenre('cafe', 'morning', 3)
+        expect(subgenre).toBe('piedmont')
+      })
+
+      it('lunch with high energy returns boogie blues', () => {
+        const subgenre = selectBluesSubgenre('restaurant', 'lunch', 5)
+        expect(subgenre).toBe('boogie')
+      })
+
+      it('lunch with low energy returns piedmont blues', () => {
+        const subgenre = selectBluesSubgenre('restaurant', 'lunch', 2)
+        expect(subgenre).toBe('piedmont')
+      })
+
+      it('dinner at hotel returns west_coast blues', () => {
+        const subgenre = selectBluesSubgenre('hotel', 'dinner', 3)
+        expect(subgenre).toBe('west_coast')
+      })
+
+      it('dinner at spa returns west_coast blues', () => {
+        const subgenre = selectBluesSubgenre('spa', 'evening', 3)
+        expect(subgenre).toBe('west_coast')
+      })
+
+      it('dinner at restaurant with high energy returns texas blues', () => {
+        const subgenre = selectBluesSubgenre('restaurant', 'dinner', 4)
+        expect(subgenre).toBe('texas')
+      })
+
+      it('dinner at restaurant with normal energy returns chicago blues', () => {
+        const subgenre = selectBluesSubgenre('restaurant', 'dinner', 3)
+        expect(subgenre).toBe('chicago')
+      })
+
+      it('dinner at cafe with low energy returns delta blues', () => {
+        const subgenre = selectBluesSubgenre('cafe', 'evening', 2)
+        expect(subgenre).toBe('delta')
+      })
+
+      it('dinner at retail with high energy returns jump blues', () => {
+        const subgenre = selectBluesSubgenre('retail', 'dinner', 4)
+        expect(subgenre).toBe('jump')
+      })
+
+      it('dinner at gym with normal energy returns texas blues', () => {
+        const subgenre = selectBluesSubgenre('gym', 'evening', 3)
+        expect(subgenre).toBe('texas')
+      })
+    })
+
+    // Test blues prompt content
+    describe('blues prompt content', () => {
+      it('chicago blues includes correct elements', () => {
+        const preferences: MusicPreferences = {
+          businessType: 'restaurant',
+          timeOfDay: 'dinner',
+          genre: 'blues',
+          energy: 3,
+        }
+        const prompt = buildPrompt(preferences)
+        expect(prompt).toContain('Chicago')
+        expect(prompt).toContain('electric guitar')
+        expect(prompt).toContain('harmonica')
+        expect(prompt).toContain('instrumental')
+        expect(prompt).toContain('no vocals')
+      })
+
+      it('slow blues includes correct elements', () => {
+        const preferences: MusicPreferences = {
+          businessType: 'restaurant',
+          timeOfDay: 'late_night',
+          genre: 'blues',
+          energy: 3,
+        }
+        const prompt = buildPrompt(preferences)
+        expect(prompt).toContain('Slow blues')
+        expect(prompt).toContain('vibrato')
+        expect(prompt).toContain('60-75 BPM')
+      })
+
+      it('jump blues includes correct elements', () => {
+        const preferences: MusicPreferences = {
+          businessType: 'retail',
+          timeOfDay: 'dinner',
+          genre: 'blues',
+          energy: 5,
+        }
+        const prompt = buildPrompt(preferences)
+        expect(prompt).toContain('Jump blues')
+        expect(prompt).toContain('big band')
+        expect(prompt).toContain('danceable')
+      })
+
+      it('west_coast blues includes correct elements', () => {
+        const preferences: MusicPreferences = {
+          businessType: 'hotel',
+          timeOfDay: 'dinner',
+          genre: 'blues',
+          energy: 3,
+        }
+        const prompt = buildPrompt(preferences)
+        expect(prompt).toContain('West Coast')
+        expect(prompt).toContain('jazz tone')
+        expect(prompt).toContain('polished')
+      })
+
+      it('all blues prompts include no vocals marker', () => {
+        Object.values(bluesSubgenres).forEach((prompt) => {
+          expect(prompt).toContain('no vocals')
+        })
+      })
+
+      it('all blues prompts include BPM', () => {
+        Object.values(bluesSubgenres).forEach((prompt) => {
+          expect(prompt).toMatch(/\d+-\d+ BPM/)
+        })
+      })
+    })
+
     // Test energy levels
     describe('energy levels', () => {
       const basePrefs = {
@@ -245,10 +389,21 @@ describe('promptBuilder', () => {
     })
 
     it('all genres have descriptions', () => {
-      const expectedGenres = ['jazz', 'classical', 'acoustic', 'bossa_nova', 'ambient', 'electronic', 'pop']
+      const expectedGenres = ['jazz', 'classical', 'acoustic', 'bossa_nova', 'ambient', 'electronic', 'pop', 'blues']
       expectedGenres.forEach((genre) => {
         expect(genreDescriptions[genre]).toBeDefined()
-        expect(genreDescriptions[genre].length).toBeGreaterThan(0)
+        // Blues has empty description since it uses subgenres
+        if (genre !== 'blues') {
+          expect(genreDescriptions[genre].length).toBeGreaterThan(0)
+        }
+      })
+    })
+
+    it('all blues subgenres have descriptions', () => {
+      const expectedSubgenres = ['chicago', 'delta', 'texas', 'jump', 'slow', 'piedmont', 'boogie', 'west_coast']
+      expectedSubgenres.forEach((subgenre) => {
+        expect(bluesSubgenres[subgenre]).toBeDefined()
+        expect(bluesSubgenres[subgenre].length).toBeGreaterThan(0)
       })
     })
 

@@ -2,7 +2,7 @@ export type BusinessType = 'restaurant' | 'cafe' | 'retail' | 'spa' | 'gym' | 'h
 
 export type TimeOfDay = 'morning' | 'lunch' | 'dinner' | 'evening' | 'late_night'
 
-export type Genre = 'jazz' | 'classical' | 'acoustic' | 'bossa_nova' | 'ambient' | 'electronic' | 'pop'
+export type Genre = 'jazz' | 'classical' | 'acoustic' | 'bossa_nova' | 'ambient' | 'electronic' | 'pop' | 'blues'
 
 export interface MusicPreferences {
   businessType: BusinessType | null
